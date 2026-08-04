@@ -1,1 +1,4 @@
-pillow==12.2.0
+# Direct dependencies only; transitive ones are resolved by the installer.
+# The conversion engine itself is Calibre's ebook-convert, installed separately:
+#   brew install --cask calibre
+PySide6==6.11.1

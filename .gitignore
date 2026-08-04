@@ -16,6 +16,13 @@ env/
 .claude/settings.local.json
 .DS_Store
 
+# Packaging (icon.icns is committed; the iconset it is built from is not)
+build/
+dist/
+dist.noindex/
+*.spec
+assets/icon.iconset/
+
 # Generated / data
 *.log
 *.db

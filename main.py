@@ -1,112 +1,78 @@
 #!/usr/bin/env python3
-# ↑ Lets you run this script directly on Unix/macOS (optional convenience).
+"""Ebook Converter — entry point.
 
-import os          # Provides filesystem operations (paths, walking directories)
-import sys         # Allows program exit and command-line interaction
-import shutil      # Used to check if an external command (ebook-convert) exists
-import subprocess  # Lets us run external programs like Calibre’s ebook-convert
+    python main.py              launch the app
+    python main.py --selftest   check a build's wiring and exit
 
-# === CONFIGURATION SECTION ===
+The self-test exists because a packaged .app fails in ways the source tree
+cannot. Two in particular: an app launched from Finder gets a bare PATH, so the
+``ebook-convert`` lookup that works in a terminal finds nothing; and PyInstaller
+rewrites the dynamic-linker environment, which can make the Calibre subprocess
+load the wrong libraries and die. Running this against the built binary proves
+a real conversion still works before the app is trusted with a library of
+books.
+"""
 
-# The root folder containing all your EPUBs and subfolders.
-ROOT_DIR = "/Users/as/Library/CloudStorage/GoogleDrive-andreas.seel86@gmail.com/My Drive/ebooks"
-
-# Whether to overwrite existing PDFs (True = overwrite, False = skip)
-OVERWRITE = False
-
-# If True, the script will *not* actually convert anything — it just lists what it would do.
-DRY_RUN = False
-
-# === END CONFIGURATION ===
+import sys
 
 
-def main():
-    """
-    Main function — walks through all folders under ROOT_DIR,
-    finds .epub files, and converts them to .pdf using Calibre.
-    """
+def selftest() -> int:
+    import tempfile
+    from pathlib import Path
 
-    # --- Check for Calibre's 'ebook-convert' command availability ---
-    if not shutil.which("ebook-convert"):
-        # If Calibre CLI isn’t installed, show instructions and exit.
-        print("❌ 'ebook-convert' not found.")
-        print("Install Calibre CLI on macOS:\n  brew install --cask calibre\n"
-              "Then run:\n  /Applications/calibre.app/Contents/MacOS/calibre_postinstall")
-        sys.exit(1)
+    from ebook_converter import APP_NAME, asset_path, calibre, config, formats, runner
+    from ebook_converter.jobs import Job, Status
 
-    # Counters for summary statistics
-    total_found = 0       # Number of EPUBs found in all subfolders
-    total_skipped = 0     # Number of EPUBs skipped because PDFs already exist
-    total_converted = 0   # Number of EPUBs successfully converted
-    errors = []           # List to collect any conversion errors
+    frozen = getattr(sys, "frozen", False)
+    icon = asset_path("icon.icns")
+    binary = calibre.find_ebook_convert()
 
-    # --- Walk through all folders and subfolders ---
-    for dirpath, dirnames, filenames in os.walk(ROOT_DIR):
-        # dirpath: current directory path
-        # dirnames: list of subdirectories (not used here)
-        # filenames: list of files in this directory
+    print(f"{APP_NAME} self-test")
+    print(f"  frozen bundle:   {frozen}")
+    print(f"  icon asset:      {icon} ({'found' if icon.exists() else 'MISSING'})")
+    print(f"  config path:     {config.CONFIG_PATH}")
+    print(f"  ebook-convert:   {binary or 'NOT FOUND'}")
+    print(f"  calibre version: {calibre.version(binary) or 'unknown'}")
+    print(f"  formats:         {len(formats.INPUT_EXTENSIONS)} in / {len(formats.OUTPUT_FORMATS)} out")
 
-        # Loop through each file in the current folder
-        for name in filenames:
-            # Check if file ends with ".epub" (case-insensitive)
-            if name.lower().endswith(".epub"):
-                total_found += 1  # Increment found counter
+    problems = []
+    if not icon.exists():
+        problems.append("icon asset missing from the bundle")
+    if frozen and ".app/" in str(config.CONFIG_PATH):
+        problems.append("config would be written inside the .app bundle")
 
-                # Full absolute path to the EPUB file
-                epub_path = os.path.join(dirpath, name)
+    if binary is None:
+        problems.append("ebook-convert not found — conversion cannot work")
+    else:
+        # A real end-to-end conversion; nothing else proves the subprocess
+        # environment survived packaging.
+        with tempfile.TemporaryDirectory() as tmp:
+            source = Path(tmp) / "selftest.txt"
+            source.write_text("Chapter 1\n\nRound-trip probe.\n", encoding="utf-8")
+            job = Job(source=source, target=Path(tmp) / "selftest.epub")
+            runner.execute(job, formats.OUTPUT_BY_EXT["epub"], binary=binary)
+            print(f"  txt -> epub:     {job.status.value} {job.detail}")
+            if job.status is not Status.DONE:
+                problems.append(f"round-trip conversion failed: {job.detail}")
 
-                # The output PDF will have the same name but ".pdf" extension
-                pdf_path = os.path.splitext(epub_path)[0] + ".pdf"
+    drift = formats.missing_from_calibre()
+    if drift and any(drift):
+        problems.append(f"format lists are stale — Calibre also supports {drift}")
 
-                # If we don't want to overwrite and the PDF already exists → skip it
-                if not OVERWRITE and os.path.exists(pdf_path):
-                    print(f"⏭️  Skipping (exists): {pdf_path}")
-                    total_skipped += 1
-                    continue  # Move on to the next file
+    if problems:
+        print("\nFAILED:")
+        for problem in problems:
+            print(f"  - {problem}")
+        return 1
 
-                # Print a relative path for easier reading in logs
-                print(f"🔁 Converting: {os.path.relpath(epub_path, ROOT_DIR)}")
+    print("\nOK")
+    return 0
 
-                # If in "dry run" mode, don’t actually run the conversion
-                if DRY_RUN:
-                    total_converted += 1
-                    continue
 
-                # --- Perform the actual conversion using Calibre ---
-                try:
-                    # Build the command line: ebook-convert "input.epub" "output.pdf"
-                    # You can add extra options after pdf_path (e.g., "--paper-size", "--disable-font-rescaling", etc.)
-                    cmd = ["ebook-convert", epub_path, pdf_path]
-
-                    # Run the command, raising an error if it fails
-                    subprocess.run(cmd, check=True)
-
-                    # If successful, increment counter and print confirmation
-                    total_converted += 1
-                    print(f"✅ Wrote: {os.path.relpath(pdf_path, ROOT_DIR)}")
-
-                except subprocess.CalledProcessError as e:
-                    # If conversion fails, record the error and continue with the next file
-                    msg = f"❌ Failed: {epub_path} ({e})"
-                    print(msg)
-                    errors.append(msg)
-
-    # --- Print a nice summary of what happened ---
-    print("\n—— Summary ——")
-    print(f"EPUBs found:      {total_found}")
-    print(f"Converted:        {total_converted}{' (dry run)' if DRY_RUN else ''}")
-    print(f"Skipped (exists): {total_skipped}")
-
-    # If any errors occurred, show how many and a few examples
-    if errors:
-        print(f"Errors:           {len(errors)}")
-        for m in errors[:5]:  # Show first 5 errors only
-            print(" •", m)
-        if len(errors) > 5:
-            print(f" • …and {len(errors)-5} more")
-
-# --- Standard Python boilerplate ---
-# Ensures that main() only runs when this file is executed directly,
-# not when it’s imported as a module in another script.
 if __name__ == "__main__":
-    main()
+    if "--selftest" in sys.argv:
+        sys.exit(selftest())
+
+    from ui.main_window import run
+
+    sys.exit(run())
