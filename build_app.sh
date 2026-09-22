@@ -19,6 +19,9 @@ uv pip install -q pyinstaller
 
 # Regenerate the icon so the bundle never ships a stale one.
 python assets/make_icon.py
+# A frozen bundle has no .git, so record the build it was made from.
+python scripts/stamp_version.py
+
 
 rm -rf build dist "$DIST"
 
@@ -31,6 +34,8 @@ pyinstaller --noconfirm --clean --windowed \
   --osx-bundle-identifier "$BUNDLE_ID" \
   --distpath "$DIST" \
   --add-data "assets/icon.icns:assets" \
+  --add-data "VERSION:." \
+  --add-data "_build_info.json:." \
   --exclude-module PySide6.QtWebEngineCore \
   --exclude-module PySide6.QtWebEngineWidgets \
   --exclude-module PySide6.Qt3DCore \

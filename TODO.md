@@ -16,6 +16,13 @@
 - [ ] `P3` `design` `@ai` Show the conversion command that will run, for anyone who wants to reproduce it in a terminal
 - [ ] `P3` `docs` `@ai` Document which format pairs are lossy, since the picker treats them all alike
 
+- [x] `P2` `infra` `@ai` **Versioned `v<MAJOR>.<BUILD>`, shown in the window title.** The
+  arc lives in `VERSION`; the build is `git rev-list --count HEAD`, so it cannot be
+  forgotten. `ebook_converter/version.py` reads live git from a checkout and a `_build_info.json` stamped
+  by `scripts/stamp_version.py` from a frozen bundle, and says `v2.???` rather than
+  guessing when it has neither. This was the last packaged app in the lab still missing
+  the scheme.
+
 ## v3 — later
 
 - [ ] `P2` `feature` `@ai` Metadata editing (title, author, cover) before conversion

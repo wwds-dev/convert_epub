@@ -35,7 +35,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from ebook_converter import APP_NAME, asset_path, calibre, config, formats, jobs as jobs_mod
+from ebook_converter import APP_NAME, asset_path, calibre, config, formats, jobs as jobs_mod, version
 from ebook_converter.jobs import Job, OutputMode, Status
 from ui.worker import ConversionWorker
 
@@ -136,7 +136,7 @@ class MainWindow(QMainWindow):
         self._jobs: list[Job] = []
         self._worker: ConversionWorker | None = None
 
-        self.setWindowTitle(APP_NAME)
+        self.setWindowTitle(f"{APP_NAME} {version.version_string()}")
         self.setMinimumSize(QSize(820, 560))
         self.resize(QSize(960, 660))
         self.setAcceptDrops(True)
