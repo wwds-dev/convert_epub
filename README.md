@@ -4,8 +4,6 @@ A macOS drag-and-drop converter for ebooks and documents. Drop files or folders,
 pick a target format, convert. Any format Calibre can read becomes any format
 Calibre can write — **47 input formats, 19 output formats**.
 
-![Ebook Converter](docs/screenshot.png)
-
 ## What it does
 
 | | |
