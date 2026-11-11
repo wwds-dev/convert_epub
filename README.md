@@ -62,9 +62,14 @@ and copies it to `/Applications`. Without `--install` the bundle is left in
 | `ebook_converter/jobs.py` | Expanding dropped paths into a plan: what converts, where to, what gets skipped |
 | `ebook_converter/runner.py` | Executing one job |
 | `ebook_converter/config.py` | Settings in `~/Library/Application Support/Ebook Converter/` |
+| `ebook_converter/version.py` | The `v<MAJOR>.<BUILD>` string shown in the window title (see *Version*) |
 | `ui/main_window.py` | The window |
 | `ui/worker.py` | The background conversion thread |
 | `assets/make_icon.py` | Regenerates `icon.icns` (run by `build_app.sh`) |
+| `build_app.sh` | PyInstaller build into `dist.noindex/`, then `--selftest` on the packaged binary; `--install` copies to `/Applications` |
+| `scripts/stamp_version.py` | Writes `_build_info.json` (git-ignored) so a frozen build knows its build number; run by `build_app.sh` |
+| `VERSION` | The hand-edited MAJOR part of the version |
+| `tests/` | pytest suite; `test_integration.py` runs real Calibre conversions |
 
 ## Notes on formats
 

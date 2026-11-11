@@ -4,10 +4,10 @@ Status: `IDEA` · `CONSIDERING` · `PLANNED` · `DONE` · `REJECTED`
 
 ---
 
+## Open
+
 | # | Suggestion | Category | Effort | Status |
 |---|---|---|---|---|
-| 1 | Batch folder conversion with a per-file result list | feature | M | PLANNED |
-| 2 | Remember last input/output folders | feature | XS | PLANNED |
 | 3 | Loud skip when Calibre is missing, instead of a silent green suite | testing | S | PLANNED |
 | 4 | Re-check pinned format lists on Calibre version change | bug | S | PLANNED |
 | 5 | Metadata editing before conversion | feature | L | CONSIDERING |
@@ -22,3 +22,11 @@ Status: `IDEA` · `CONSIDERING` · `PLANNED` · `DONE` · `REJECTED`
 | `--selftest` that converts a real file end to end against the packaged binary | Aug 2026 |
 | PATH and dynamic-linker handling for Finder-launched builds | Aug 2026 |
 | Format picker driven by pinned lists with a test that fails when Calibre adds one | Aug 2026 |
+| Batch folder conversion with a per-file result list (Add Folder / drop a folder; each row shows its own status, Retry re-queues failures) | Aug 2026 |
+| Remember last input/output folders (`last_source_dir`, `output_dir` in `settings.json`) | Aug 2026 |
+| `v<MAJOR>.<BUILD>` version in the window title | Sep 2026 |
+
+## Rejected
+
+| Suggestion | Why |
+|---|---|

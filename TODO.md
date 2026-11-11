@@ -9,8 +9,8 @@
 ## v2 — current
 
 - [ ] `P1` `bug` `@ai` The format lists are pinned rather than queried. `formats.missing_from_calibre()` re-checks them only when Calibre's packages happen to be importable — make that check run on a schedule, or on version change, so a Calibre update doesn't silently hide a new format.
-- [ ] `P1` `feature` `@ai` Batch conversion of a whole folder with a per-file result list, rather than one file at a time
-- [ ] `P2` `feature` `@ai` Remember the last input and output folder between launches
+- [x] `P1` `feature` `@ai` Batch conversion of a whole folder with a per-file result list, rather than one file at a time
+- [x] `P2` `feature` `@ai` Remember the last input and output folder between launches
 - [ ] `P2` `testing` `@ai` The integration suite skips entirely when Calibre is absent — make that skip loud, so a broken install doesn't look like a green run
 - [ ] `P2` `bug` `@me` Confirm Calibre's `ebook-convert` is on `PATH` for a Finder-launched app after each Calibre upgrade
 - [ ] `P3` `design` `@ai` Show the conversion command that will run, for anyone who wants to reproduce it in a terminal
